@@ -8,8 +8,6 @@ node_modules/
 /out/
 
 # env
-.env
-.env.local
 .env*.local
 
 # debug
@@ -18,4 +16,4 @@ npm-debug.log*
 
 # IDE
 .idea
-.vscode
+config.bat

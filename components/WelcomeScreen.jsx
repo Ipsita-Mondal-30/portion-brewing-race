@@ -9,7 +9,7 @@ const clip =
   "polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)";
 
 export default function WelcomeScreen() {
-  const { address, connectWallet, loadingConnect } = useWallet();
+  const { address, connectWallet, disconnectWallet, loadingConnect } = useWallet();
   const connected = Boolean(address);
 
   return (
@@ -72,36 +72,48 @@ export default function WelcomeScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
         >
-          <motion.button
-            type="button"
-            onClick={connectWallet}
-            disabled={loadingConnect}
-            className="relative overflow-hidden px-8 py-4 text-sm font-bold text-white disabled:opacity-60"
-            style={{
-              fontFamily: "'Orbitron', sans-serif",
-              clipPath: clip,
-              boxShadow: connected
-                ? "0 0 32px rgba(34,197,94,0.45)"
-                : "0 0 32px rgba(168,85,247,0.45)",
-            }}
-            whileHover={{ scale: loadingConnect ? 1 : 1.02 }}
-            whileTap={{ scale: loadingConnect ? 1 : 0.98 }}
-          >
-            <span
-              className={`absolute inset-0 bg-gradient-to-r ${connected ? "from-emerald-600 to-green-500" : "from-purple-600 to-pink-600"}`}
-            />
-            <span className="relative">{loadingConnect ? "Connecting…" : connected ? "Wallet connected" : "Connect wallet"}</span>
-          </motion.button>
-
-          {connected && (
-            <motion.span
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-xs text-emerald-400"
-              style={{ fontFamily: "'Orbitron', sans-serif" }}
+          {connected ? (
+            <>
+              <motion.button
+                type="button"
+                onClick={disconnectWallet}
+                className="border border-rose-500/50 bg-rose-950/50 px-8 py-4 text-sm font-bold text-rose-100"
+                style={{
+                  fontFamily: "'Orbitron', sans-serif",
+                  clipPath: clip,
+                  boxShadow: "0 0 24px rgba(244,63,94,0.35)",
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Disconnect wallet
+              </motion.button>
+              <motion.span
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-xs text-emerald-400"
+                style={{ fontFamily: "'Orbitron', sans-serif" }}
+              >
+                You are ready to enter the arena.
+              </motion.span>
+            </>
+          ) : (
+            <motion.button
+              type="button"
+              onClick={connectWallet}
+              disabled={loadingConnect}
+              className="relative overflow-hidden px-8 py-4 text-sm font-bold text-white disabled:opacity-60"
+              style={{
+                fontFamily: "'Orbitron', sans-serif",
+                clipPath: clip,
+                boxShadow: "0 0 32px rgba(168,85,247,0.45)",
+              }}
+              whileHover={{ scale: loadingConnect ? 1 : 1.02 }}
+              whileTap={{ scale: loadingConnect ? 1 : 0.98 }}
             >
-              You are ready to enter the arena.
-            </motion.span>
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600" />
+              <span className="relative">{loadingConnect ? "Connecting…" : "Connect wallet"}</span>
+            </motion.button>
           )}
         </motion.div>
 
