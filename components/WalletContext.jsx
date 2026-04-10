@@ -14,6 +14,17 @@ import {
 
 const WalletContext = createContext(null);
 
+/** One shared in-flight connect; stops duplicate eth_requestAccounts (-32002) from Navbar + hero, double-clicks, etc. */
+let connectWalletPromise = null;
+
+function rpcNestedCode(err) {
+  const inner =
+    err && typeof err === "object" && "error" in err && err.error && typeof err.error === "object"
+      ? err.error
+      : null;
+  return inner?.code;
+}
+
 export function WalletProvider({ children }) {
   const [address, setAddress] = useState(null);
   const [signer, setSigner] = useState(null);
@@ -117,23 +128,78 @@ export function WalletProvider({ children }) {
       return;
     }
 
+    if (connectWalletPromise) {
+      return connectWalletPromise;
+    }
+
     setLoadingConnect(true);
     setTxStatus({ type: null, message: "" });
 
-    try {
-      const provider = new BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const nextSigner = await provider.getSigner();
-      const addr = await nextSigner.getAddress();
-      setSigner(nextSigner);
-      setAddress(addr);
-      setTxStatus({ type: "success", message: `Connected: ${addr.slice(0, 6)}…${addr.slice(-4)}` });
-    } catch (err) {
-      setTxStatus({ type: "error", message: formatContractError(err) });
-    } finally {
-      setLoadingConnect(false);
-    }
+    connectWalletPromise = (async () => {
+      try {
+        const provider = new BrowserProvider(window.ethereum);
+
+        // No popup: MetaMask already authorized this origin (refresh, state reset, etc.)
+        const already = await provider.send("eth_accounts", []);
+        if (already?.length) {
+          const nextSigner = await provider.getSigner();
+          const addr = await nextSigner.getAddress();
+          setSigner(nextSigner);
+          setAddress(addr);
+          setTxStatus({ type: "success", message: `Connected: ${addr.slice(0, 6)}…${addr.slice(-4)}` });
+          return;
+        }
+
+        try {
+          await provider.send("eth_requestAccounts", []);
+        } catch (err) {
+          if (rpcNestedCode(err) === -32002 || /** @type {{ code?: number }} */ (err).code === -32002) {
+            const after = await provider.send("eth_accounts", []);
+            if (after?.length) {
+              const nextSigner = await provider.getSigner();
+              const addr = await nextSigner.getAddress();
+              setSigner(nextSigner);
+              setAddress(addr);
+              setTxStatus({ type: "success", message: `Connected: ${addr.slice(0, 6)}…${addr.slice(-4)}` });
+              return;
+            }
+          }
+          setTxStatus({ type: "error", message: formatContractError(err) });
+          return;
+        }
+
+        const nextSigner = await provider.getSigner();
+        const addr = await nextSigner.getAddress();
+        setSigner(nextSigner);
+        setAddress(addr);
+        setTxStatus({ type: "success", message: `Connected: ${addr.slice(0, 6)}…${addr.slice(-4)}` });
+      } catch (err) {
+        setTxStatus({ type: "error", message: formatContractError(err) });
+      } finally {
+        connectWalletPromise = null;
+        setLoadingConnect(false);
+      }
+    })();
+
+    return connectWalletPromise;
   }, []);
+
+  const disconnectWallet = useCallback(async () => {
+    setSigner(null);
+    setAddress(null);
+    setTxStatus({ type: null, message: "" });
+    if (typeof window !== "undefined" && window.ethereum?.request) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_revokePermissions",
+          params: [{ eth_accounts: {} }],
+        });
+      } catch {
+        // Wallet may not support revoke; local state is already cleared.
+      }
+    }
+    await refreshLeaderboard();
+  }, [refreshLeaderboard]);
 
   const handleJoinRace = useCallback(async () => {
     if (!signer) {
@@ -219,6 +285,7 @@ export function WalletProvider({ children }) {
       leaderboardLoading,
       leaderboardError,
       connectWallet,
+      disconnectWallet,
       handleJoinRace,
       handleBrewPotion,
       dismissTx,
@@ -235,6 +302,7 @@ export function WalletProvider({ children }) {
       leaderboardLoading,
       leaderboardError,
       connectWallet,
+      disconnectWallet,
       handleJoinRace,
       handleBrewPotion,
       dismissTx,

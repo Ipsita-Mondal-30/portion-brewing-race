@@ -9,7 +9,7 @@ const clip =
   "polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)";
 
 export default function AlchemistForm() {
-  const { address, connectWallet, loadingConnect } = useWallet();
+  const { address, connectWallet, disconnectWallet, loadingConnect } = useWallet();
   const [displayName, setDisplayName] = useState("");
   const [brewFocus, setBrewFocus] = useState("speed");
   const [notes, setNotes] = useState("");
@@ -131,7 +131,17 @@ export default function AlchemistForm() {
               Linked wallet
             </p>
             {address ? (
-              <p className="break-all font-mono text-xs text-emerald-300">{address}</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <p className="min-w-0 flex-1 break-all font-mono text-xs text-emerald-300">{address}</p>
+                <button
+                  type="button"
+                  onClick={disconnectWallet}
+                  className="shrink-0 border border-rose-500/50 bg-rose-950/40 px-3 py-2 text-xs font-bold text-rose-200 hover:bg-rose-950/60"
+                  style={{ fontFamily: "'Orbitron', sans-serif" }}
+                >
+                  Disconnect
+                </button>
+              </div>
             ) : (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-xs text-gray-400" style={{ fontFamily: "'Orbitron', sans-serif" }}>
