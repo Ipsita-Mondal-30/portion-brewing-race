@@ -9,6 +9,7 @@ export default function GamePage() {
     address,
     loadingConnect,
     connectWallet,
+    disconnectWallet,
     loadingJoin,
     loadingBrew,
     handleJoinRace,
@@ -20,7 +21,12 @@ export default function GamePage() {
 
   return (
     <>
-      <Navbar address={address} loadingConnect={loadingConnect} onConnect={connectWallet} />
+      <Navbar
+        address={address}
+        loadingConnect={loadingConnect}
+        onConnect={connectWallet}
+        onDisconnect={disconnectWallet}
+      />
       <GameUI
         address={address}
         loadingJoin={loadingJoin}

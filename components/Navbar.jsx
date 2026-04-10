@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Loader2, Wallet, Sparkles } from "lucide-react";
+import { Loader2, LogOut, Wallet } from "lucide-react";
 
 const clip =
   "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)";
@@ -23,6 +23,7 @@ export default function Navbar({
   address,
   loadingConnect,
   onConnect,
+  onDisconnect,
 }) {
   const connected = Boolean(address);
   const pathname = usePathname();
@@ -96,50 +97,50 @@ export default function Navbar({
             </div>
           )}
 
-          <motion.button
-            type="button"
-            onClick={onConnect}
-            disabled={loadingConnect}
-            className="relative flex items-center gap-2 overflow-hidden px-6 py-3 text-sm font-bold text-white disabled:opacity-60"
-            style={{
-              fontFamily: "'Orbitron', sans-serif",
-              clipPath: clip,
-              boxShadow: connected
-                ? "0 0 28px rgba(34,197,94,0.55), inset 0 0 18px rgba(255,255,255,0.08)"
-                : "0 0 28px rgba(168,85,247,0.55), inset 0 0 18px rgba(255,255,255,0.08)",
-            }}
-            whileHover={{ scale: loadingConnect ? 1 : 1.03 }}
-            whileTap={{ scale: loadingConnect ? 1 : 0.97 }}
-          >
-            <span
-              className={`absolute inset-0 bg-gradient-to-r ${
-                connected
-                  ? "from-emerald-600 via-green-500 to-emerald-600"
-                  : "from-purple-600 via-pink-600 to-purple-600"
-              }`}
-            />
-            <span
-              className="absolute inset-0 opacity-25"
+          {connected && onDisconnect ? (
+            <motion.button
+              type="button"
+              onClick={onDisconnect}
+              className="relative flex items-center gap-2 overflow-hidden border border-rose-500/50 bg-rose-950/40 px-5 py-3 text-sm font-bold text-rose-100"
               style={{
-                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255,255,255,0.45) 4px, rgba(255,255,255,0.45) 5px),
-                  repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.45) 4px, rgba(255,255,255,0.45) 5px)`,
+                fontFamily: "'Orbitron', sans-serif",
+                clipPath: clip,
+                boxShadow: "0 0 20px rgba(244,63,94,0.35), inset 0 0 12px rgba(255,255,255,0.06)",
               }}
-            />
-            <span className="relative flex items-center gap-2">
-              {loadingConnect ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : connected ? (
-                <Sparkles className="h-5 w-5" />
-              ) : (
-                <Wallet className="h-5 w-5" />
-              )}
-              {loadingConnect
-                ? "Connecting…"
-                : connected
-                  ? "Wallet connected"
-                  : "Connect wallet"}
-            </span>
-          </motion.button>
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <LogOut className="h-5 w-5" />
+              Disconnect
+            </motion.button>
+          ) : (
+            <motion.button
+              type="button"
+              onClick={onConnect}
+              disabled={loadingConnect}
+              className="relative flex items-center gap-2 overflow-hidden px-6 py-3 text-sm font-bold text-white disabled:opacity-60"
+              style={{
+                fontFamily: "'Orbitron', sans-serif",
+                clipPath: clip,
+                boxShadow: "0 0 28px rgba(168,85,247,0.55), inset 0 0 18px rgba(255,255,255,0.08)",
+              }}
+              whileHover={{ scale: loadingConnect ? 1 : 1.03 }}
+              whileTap={{ scale: loadingConnect ? 1 : 0.97 }}
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600" />
+              <span
+                className="absolute inset-0 opacity-25"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255,255,255,0.45) 4px, rgba(255,255,255,0.45) 5px),
+                    repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.45) 4px, rgba(255,255,255,0.45) 5px)`,
+                }}
+              />
+              <span className="relative flex items-center gap-2">
+                {loadingConnect ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wallet className="h-5 w-5" />}
+                {loadingConnect ? "Connecting…" : "Connect wallet"}
+              </span>
+            </motion.button>
+          )}
         </div>
       </div>
     </motion.nav>
